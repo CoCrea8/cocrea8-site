@@ -96,7 +96,7 @@
     <header class="fixed w-full top-0 z-50 bg-[#F9F9F7]/95 backdrop-blur-sm border-b border-stone">
         <div class="max-w-screen-2xl mx-auto px-6 h-24 flex justify-between items-center">
             <!-- Logo Area -->
-            <a href="#" onclick="showPage('home')" class="hover:opacity-80 transition-opacity flex items-center">
+            <a href="#" onclick="showPage('home')" class="hover:opacity-80 transition-opacity flex items-center gap-3">
                 <!-- UPDATED: Logo resized to h-20 (bigger) -->
                 <img src="images/logo.jpg" alt="CoCrea8 Logo" class="h-20 w-auto"> 
             </a>
@@ -118,7 +118,7 @@
         </div>
 
         <!-- Mobile Menu Overlay -->
-        <!-- UPDATED: Changed bg-[#F9F9F7] to bg-white to ensure it is opaque and blocks underlying content -->
+        <!-- FIX: Added 'bg-white' to ensure opacity and prevent transparency issues -->
         <div id="mobile-menu" class="fixed inset-0 bg-white z-50 hidden flex-col justify-center items-center space-y-8 text-xl font-serif">
             <button class="absolute top-8 right-8" onclick="toggleMobileMenu()">
                 <i data-lucide="x" class="w-8 h-8"></i>
