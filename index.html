@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoCrea8 Learning Design</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teal: { DEFAULT: '#0a6b61', dark: '#074d46' },
+                        // Added 'dark' variant for the hover state on numbers
+                        rose: { DEFAULT: '#d68d8d', light: '#e8d5d5', dark: '#b06b6b' },
+                        charcoal: '#3d4a4e',
+                        navy: '#1a2930',
+                        offwhite: '#F9F9F7', /* Warmer, paper-like off-white */
+                        stone: '#e5e5e0'
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    },
+                    spacing: {
+                        '128': '32rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F9F9F7;
+            color: #3d4a4e;
+        }
+        /* Fade transition for page switching */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nav-link.active {
+            color: #0a6b61;
+            font-weight: 500;
+        }
+        /* Barbosa-style thin lines */
+        .thin-border {
+            border-bottom: 1px solid #e5e5e0;
+        }
+        /* Custom Details Marker */
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen font-sans selection:bg-rose selection:text-white">
+
+    <!-- Firebase Setup Boilerplate -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app, db, auth, userId;
+        const initFirebase = async () => {
+            if (Object.keys(firebaseConfig).length === 0) return;
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
+                else await signInAnonymously(auth);
+                onAuthStateChanged(auth, (user) => { if (user) userId = user.uid; });
+            } catch (error) { console.error("Firebase Auth Error", error); }
+        };
+        window.addEventListener('load', initFirebase);
+    </script>
+
+    <!-- Header / Navigation -->
+    <header class="fixed w-full top-0 z-50 bg-[#F9F9F7]/95 backdrop-blur-sm border-b border-stone">
+        <div class="max-w-screen-2xl mx-auto px-6 h-24 flex justify-between items-center">
+            <!-- Logo Area -->
+            <a href="#" onclick="showPage('home')" class="font-serif text-3xl text-teal tracking-tight hover:opacity-80 transition-opacity flex items-center gap-3">
+                <img src="images/logo.png" alt="" class="h-10 w-auto hidden" onerror="this.style.display='none'"> 
+                <span>CoCrea8</span>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex space-x-10 text-sm tracking-widest uppercase">
+                <button onclick="showPage('about')" class="nav-link hover:text-teal transition-colors" id="nav-about">About</button>
+                <button onclick="showPage('capabilities')" class="nav-link hover:text-teal transition-colors" id="nav-capabilities">Capabilities</button>
+                <button onclick="showPage('work')" class="nav-link hover:text-teal transition-colors" id="nav-work">Work</button>
+                <button onclick="showPage('testimonials')" class="nav-link hover:text-teal transition-colors" id="nav-testimonials">Testimonials</button>
+                <button onclick="showPage('insights')" class="nav-link hover:text-teal transition-colors" id="nav-insights">Insights</button>
+                <button onclick="showPage('contact')" class="nav-link hover:text-teal transition-colors" id="nav-contact">Contact</button>
+            </nav>
+
+            <!-- Mobile Menu Icon -->
+            <button class="md:hidden text-charcoal" onclick="toggleMobileMenu()">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="fixed inset-0 bg-[#F9F9F7] z-50 hidden flex-col justify-center items-center space-y-8 text-xl font-serif">
+            <button class="absolute top-8 right-8" onclick="toggleMobileMenu()">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <button onclick="showPage('about'); toggleMobileMenu()">About</button>
+            <button onclick="showPage('capabilities'); toggleMobileMenu()">Capabilities</button>
+            <button onclick="showPage('work'); toggleMobileMenu()">Work</button>
+            <button onclick="showPage('testimonials'); toggleMobileMenu()">Testimonials</button>
+            <button onclick="showPage('insights'); toggleMobileMenu()">Insights</button>
+            <button onclick="showPage('contact'); toggleMobileMenu()">Contact</button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow pt-24 min-h-screen">
+        
+        <!-- PAGE: HOME -->
+        <section id="home" class="page-section fade-in">
+            <!-- Hero -->
+            <div class="min-h-[85vh] flex flex-col justify-center px-6 max-w-screen-xl mx-auto relative">
+                
+                <!-- Content -->
+                <div class="relative z-10">
+                    <p class="text-rose uppercase tracking-[0.2em] text-sm mb-6">Government-Grade Learning Design</p>
+                    <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl text-navy leading-[1.1] mb-12">
+                        Training that performs<br>
+                        <span class="text-teal italic">under pressure.</span>
+                    </h1>
+                    <div class="flex flex-col md:flex-row gap-8 items-start md:items-center">
+                        <button onclick="showPage('capabilities')" class="bg-navy text-white px-8 py-4 rounded-full hover:bg-teal transition-colors duration-300">
+                            Explore Capabilities
+                        </button>
+                        <p class="max-w-md text-gray-500 font-light leading-relaxed">
+                            We solve the <strong class="text-navy font-medium">Human Performance gap</strong> in complex contracts—building judgment, ensuring transfer to operations, and training for unpredictable situations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home Footer/Intro -->
+            <div class="border-t border-stone py-16 px-6">
+                <div class="max-w-screen-xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+                    <div>
+                        <h3 class="font-serif text-2xl text-teal mb-2">Active Service</h3>
+                        <p class="text-gray-500 text-sm">Founded by a Navy Reserve officer.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-serif text-2xl text-teal mb-2">Woman-Owned</h3>
+                        <p class="text-gray-500 text-sm">Small Business & Diverse Supplier Certified.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-serif text-2xl text-teal mb-2">Global Impact</h3>
+                        <p class="text-gray-500 text-sm">450,000+ learners across 30+ countries.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- PAGE: ABOUT -->
+        <section id="about" class="page-section hidden fade-in">
+            <div class="max-w-screen-xl mx-auto px-6 py-20">
+                
+                <!-- Intro Section: Problem & Solution -->
+                <div class="grid md:grid-cols-2 gap-16 items-stretch mb-24">
+                    <div class="flex flex-col justify-center">
+                        <h2 class="font-serif text-5xl md:text-6xl text-navy mb-8">The Methodology</h2>
+                        <div class="prose prose-lg text-gray-600 space-y-6">
+                            <p class="text-xl font-medium text-teal">How do you train for situations you can't fully predict?</p>
+                            <p>
+                                Defense contractors face a persistent challenge: the <strong>Human Performance gap</strong>. It requires specialized subcontractors who can bridge the technical rigor of government training with the operational realities of high-stakes environments.
+                            </p>
+                            <p>
+                                You need partners who won't slow you down. You need someone who's been there—who understands what "mission-ready" actually means because they've served in those environments.
+                            </p>
+                            <p class="font-medium text-navy">That's where we come in.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- ABOUT HERO IMAGE -->
+                    <div class="relative min-h-[500px] w-full rounded-lg overflow-hidden flex items-center justify-center p-8 group">
+                        <img src="images/about-hero.jpg" class="absolute inset-0 w-full h-full object-cover z-0" alt="Strategic Planning" onerror="this.style.opacity='0'">
+                        <div class="absolute inset-0 bg-navy/60 z-10"></div> <!-- Dark overlay for text readability -->
+                        <div class="relative z-10 text-center">
+                            <i data-lucide="anchor" class="w-16 h-16 text-white mx-auto mb-6 opacity-80"></i>
+                            <p class="font-serif text-3xl text-white italic leading-snug">"Operational readiness isn't just a metric.<br>It's the mission."</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4E LEARNING ARCHITECTURE -->
+                <div class="mb-24">
+                    <div class="max-w-3xl mb-12">
+                        <!-- Changed text-navy to text-teal -->
+                        <h3 class="font-serif text-4xl text-teal mb-4">The 4E Learning Architecture™</h3>
+                        <p class="text-gray-600 text-lg">We don't just organize content; we organize learning experiences based on how adult brains encode information under pressure. Our process is validated across DoD, USAID, and State Department programs.</p>
+                    </div>
+
+                    <!-- NEW: TRANSFORMATION VISUAL PLACEHOLDER -->
+                    <div class="mb-20 rounded-lg overflow-hidden border-2 border-dashed border-stone bg-offwhite flex items-center justify-center p-8 relative z-10">
+                        <img src="images/methodology-transformation.jpg" alt="Transformation from Complexity to Capability" class="w-full max-w-4xl h-auto relative z-10" onerror="this.style.opacity='0'">
+                    </div>
+                    
+                    <!-- PROCESS FLOW DESIGN -->
+                    <div class="relative">
+                        <!-- Connecting Line (Desktop Only) -->
+                        <div class="hidden md:block absolute top-0 left-0 w-full h-0.5 bg-stone z-0"></div>
+
+                        <div class="grid md:grid-cols-4 gap-8 relative z-10">
+                            
+                            <!-- Phase 1 -->
+                            <div class="group pt-8 border-t-2 border-transparent hover:border-teal transition-all duration-300">
+                                <div class="flex items-baseline gap-4 mb-4">
+                                    <span class="text-4xl font-serif font-bold text-teal/40 group-hover:text-teal transition-colors">01</span>
+                                    <h4 class="font-bold text-navy text-xl">Extract</h4>
+                                </div>
+                                <p class="text-sm text-gray-600 leading-relaxed mb-4">
+                                    We systematically capture tacit knowledge from SMEs—getting the decision-making frameworks experts can't articulate, not just surface-level procedures.
+                                </p>
+                                <ul class="text-xs text-gray-500 space-y-1">
+                                    <li class="flex items-center gap-2"><span class="w-1 h-1 bg-teal rounded-full"></span> Expert Logic Mapping</li>
+                                    <li class="flex items-center gap-2"><span class="w-1 h-1 bg-teal rounded-full"></span> Troubleshooting Protocols</li>
+                                </ul>
+                            </div>
+
+                            <!-- Phase 2 -->
+                            <div class="group pt-8 border-t-2 border-transparent hover:border-rose transition-all duration-300">
+                                <div class="flex items-baseline gap-4 mb-4">
+                                    <span class="text-4xl font-serif font-bold text-rose/40 group-hover:text-rose transition-colors">02</span>
+                                    <h4 class="font-bold text-navy text-xl">Engineer</h4>
+                                </div>
+                                <p class="text-sm text-gray-600 leading-relaxed mb-4">
+                                    We transform dense technical content using cognitive load management—progressive complexity building and pattern recognition rather than overwhelming working memory.
+                                </p>
+                                <ul class="text-xs text-gray-500 space-y-1">
+                                    <li class="flex items-center gap-2"><span class="w-1 h-1 bg-rose rounded-full"></span> Cognitive Load Mgmt</li>
+                                    <li class="flex items-center gap-2"><span class="w-1 h-1 bg-rose rounded-full"></span> Progressive Layering</li>
+                                </ul>
+                            </div>
+
+                            <!-- Phase 3 -->
+                            <div class="group pt-8 border-t-2 border-transparent hover:border-teal transition-all duration-300">
+                                <div class="flex items-baseline gap-4 mb-4">
+                                    <span class="text-4xl font-serif font-bold text-teal/40 group-hover:text-teal transition-colors">03</span>
+                                    <h4 class="font-bold text-navy text-xl">Embed</h4>
+                                </div>
+                                <p class="text-sm text-gray-600 leading-relaxed mb-4">
+                                    We create practice scenarios mirroring operational cognitive demands—realistic decision-making under pressure and error recovery in risk-free environments.
+                                </p>
+                                <ul class="text-xs text-gray-500 space-y-1">
+                                    <li class="flex items-center gap-2"><span class="w-1 h-1 bg-teal rounded-full"></span> Interactive Scenarios</li>
+                                    <li class="flex items-center gap-2"><span class="w-1 h-1 bg-teal rounded-full"></span> "Transfer" Focused</li>
+                                </ul>
+                            </div>
+
+                            <!-- Phase 4 -->
+                            <div class="group pt-8 border-t-2 border-transparent hover:border-rose transition-all duration-300">
+                                <div class="flex items-baseline gap-4 mb-4">
+                                    <span class="text-4xl font-serif font-bold text-rose/40 group-hover:text-rose transition-colors">04</span>
+                                    <h4 class="font-bold text-navy text-xl">Evaluate</h4>
+                                </div>
+                                <p class="text-sm text-gray-600 leading-relaxed mb-4">
+                                    We pilot test with actual learners before deployment, validating that training works for your real personnel across experience levels, not hypothetical students.
+                                </p>
+                                <ul class="text-xs text-gray-500 space-y-1">
+                                    <li class="flex items-center gap-2"><span class="w-1 h-1 bg-rose rounded-full"></span> Pilot Validation</li>
+                                    <li class="flex items-center gap-2"><span class="w-1 h-1 bg-rose rounded-full"></span> Usability Testing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- THE SCIENCE & DESIGN (Linguistics & UX/UI) -->
+                <div class="grid md:grid-cols-2 gap-12 mb-24">
+                    
+                    <!-- Column 1: Linguistics -->
+                    <div class="bg-navy p-10 rounded-xl text-white relative overflow-hidden">
+                        <!-- Decorative Background Elements -->
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-teal rounded-full mix-blend-overlay filter blur-3xl opacity-20"></div>
+                        <!-- New Watermark Icon to fill empty space -->
+                        <i data-lucide="brain-circuit" class="absolute -bottom-12 -right-12 w-64 h-64 text-white opacity-5 rotate-12 pointer-events-none"></i>
+
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-3 mb-6">
+                                <i data-lucide="brain-circuit" class="w-8 h-8 text-rose"></i>
+                                <h3 class="font-serif text-2xl font-bold">The Linguistics Advantage</h3>
+                            </div>
+                            <p class="text-teal-100 mb-8 leading-relaxed">
+                                Most training fails because traditional content principles don't account for how adults actually acquire complex systems. We use a <strong>content-agnostic methodology</strong> that applies the sophisticated cognitive science of <strong>language acquisition</strong> to any technical domain.
+                            </p>
+                            
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="text-sm font-bold text-teal-400 uppercase tracking-widest mb-2">Traditional Approach</h4>
+                                    <p class="text-sm text-gray-400">
+                                        Follows a linear, content-heavy progression (Chapter 1, Chapter 2) that ignores cognitive capacity limits and rarely translates to operational readiness.
+                                    </p>
+                                </div>
+                                <div class="border-l-2 border-rose pl-4">
+                                    <h4 class="text-sm font-bold text-white uppercase tracking-widest mb-2">The CoCrea8 Difference</h4>
+                                    <p class="text-sm text-gray-200">Organizes experience cognitively. We respect working memory limits (3-5 concepts) and build progressive complexity, just like teaching a language.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: UX/UI Design -->
+                    <div class="bg-offwhite border border-stone p-10 rounded-xl relative overflow-hidden">
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-3 mb-6">
+                                <i data-lucide="layout" class="w-8 h-8 text-teal"></i>
+                                <h3 class="font-serif text-2xl font-bold text-navy">Human-Centered Design</h3>
+                            </div>
+                            <p class="text-gray-600 mb-8 leading-relaxed">
+                                Training that is technically accurate but unusable fails. Our approach is driven by creating <strong>human-centered learning experiences that are effective, engaging, and efficient</strong>.
+                                <br><br>
+                                We apply <strong>UX/UI design principles</strong> across all modalities—<strong>synchronous, asynchronous, hybrid, in-person, immersive scenarios, and tabletop exercises</strong>. Whether digital or analog, we create intuitive learning architectures that reduce cognitive load, allowing learners to focus on the mission.
+                            </p>
+                            
+                            <div class="space-y-6">
+                                <div>
+                                    <h4 class="text-sm font-bold text-teal-600 uppercase tracking-widest mb-2">Traditional Approach</h4>
+                                    <p class="text-sm text-gray-500">
+                                        Prioritizes curriculum development while treating user experience as a decorative afterthought, often resulting in clunky, high-friction interfaces.
+                                    </p>
+                                </div>
+                                <div class="border-l-2 border-teal pl-4">
+                                    <h4 class="text-sm font-bold text-navy uppercase tracking-widest mb-2">The CoCrea8 Difference</h4>
+                                    <p class="text-sm text-gray-600">Design is architecture. We ensure every touchpoint—from a software interface to a facilitator guide—is cognitively ergonomic and intuitive under pressure.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMPETITIVE DIFFERENTIATION -->
+                <div class="mb-24">
+                    <h3 class="font-serif text-3xl text-navy mb-8 text-center">Why CoCrea8?</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="p-4 border-b-2 border-stone text-xs font-bold text-gray-400 uppercase tracking-widest w-1/3">Comparison</th>
+                                    <th class="p-4 border-b-2 border-stone text-xs font-bold text-gray-400 uppercase tracking-widest w-1/3">Traditional Agencies</th>
+                                    <th class="p-4 border-b-2 border-teal text-xs font-bold text-teal uppercase tracking-widest w-1/3 bg-teal/5">CoCrea8 Learning Design</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm">
+                                <tr>
+                                    <td class="p-4 border-b border-stone font-bold text-navy">Methodology</td>
+                                    <td class="p-4 border-b border-stone text-gray-500">Pedagogical theory (classroom focus)</td>
+                                    <td class="p-4 border-b border-stone text-navy font-medium bg-teal/5">Cognitive Science & Linguistics (operational focus)</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-4 border-b border-stone font-bold text-navy">Development</td>
+                                    <td class="p-4 border-b border-stone text-gray-500">Template-based implementation</td>
+                                    <td class="p-4 border-b border-stone text-navy font-medium bg-teal/5">Custom UX/UI for cognitive load reduction</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-4 border-b border-stone font-bold text-navy">Expertise</td>
+                                    <td class="p-4 border-b border-stone text-gray-500">Delegated delivery teams</td>
+                                    <td class="p-4 border-b border-stone text-navy font-medium bg-teal/5">Founder-led (15+ yrs govt experience)</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-4 border-b border-stone font-bold text-navy">Outcome</td>
+                                    <td class="p-4 border-b border-stone text-gray-500">Completion rates</td>
+                                    <td class="p-4 border-b border-stone text-navy font-medium bg-teal/5">Measurable performance transfer</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Who We Are & Founder -->
+                <div class="border-t border-stone pt-20 mb-24">
+                    <div class="grid md:grid-cols-12 gap-12">
+                        <div class="md:col-span-4">
+                            <h3 class="font-serif text-3xl text-navy mb-4">Who We Are</h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                CoCrea8 Learning Design is a woman-owned small business specializing in training that performs under operational pressure. We're specialists who solve the hardest learning challenges: building judgment rather than procedures.
+                            </p>
+                        </div>
+                        <div class="md:col-span-8 bg-white border border-stone p-8 rounded-xl shadow-sm">
+                            <div class="flex flex-col md:flex-row gap-8 items-start">
+                                <div class="w-32 h-32 bg-gray-200 rounded-full flex-shrink-0 overflow-hidden border-4 border-white shadow-lg">
+                                     <!-- IMAGE PLACEHOLDER: Founder Headshot -->
+                                     <img src="images/founder.jpg" alt="Leila M. Harriss" class="w-full h-full object-cover" onerror="this.style.opacity='0'">
+                                </div>
+                                <div>
+                                    <h4 class="font-serif text-2xl text-navy mb-1">Leila M. Harriss, MPhil</h4>
+                                    <p class="text-teal font-medium text-sm uppercase tracking-wide mb-4">Founder & CEO | U.S. Navy Reserve Officer</p>
+                                    <p class="text-gray-600 mb-6">
+                                        Active U.S. Navy Reserve officer with 15+ years designing learning systems for DoD, USAID, and State Dept. Credentials include an MPhil in Theoretical and Applied Linguistics from Cambridge. But the real measure isn't credentials—it's results.
+                                    </p>
+
+                                    <!-- NEW: RESULTS MINI-GRID -->
+                                    <div class="grid grid-cols-3 gap-4 mb-6 border-y border-stone py-4">
+                                        <div>
+                                            <span class="block text-xl font-bold text-teal">450k+</span>
+                                            <span class="text-[10px] uppercase tracking-wider text-gray-500">Total Learners</span>
+                                        </div>
+                                        <div>
+                                            <span class="block text-xl font-bold text-teal">100%</span>
+                                            <span class="text-[10px] uppercase tracking-wider text-gray-500">Client Satisfaction</span>
+                                        </div>
+                                        <div>
+                                            <span class="block text-xl font-bold text-teal">5+ Years</span>
+                                            <span class="text-[10px] uppercase tracking-wider text-gray-500">Sustained Adoption</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="px-3 py-1 bg-offwhite border border-stone text-xs font-bold text-gray-500 rounded-full">CQ Certified Facilitator</span>
+                                        <span class="px-3 py-1 bg-offwhite border border-stone text-xs font-bold text-gray-500 rounded-full">DoD Cultural Intel Trainer</span>
+                                        <span class="px-3 py-1 bg-offwhite border border-stone text-xs font-bold text-gray-500 rounded-full">MPhil Cambridge</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategic Network Model -->
+                <div class="bg-navy text-white rounded-2xl p-10 md:p-16 mb-24 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-96 h-96 bg-teal rounded-full mix-blend-overlay filter blur-3xl opacity-20"></div>
+                    <div class="relative z-10 grid md:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <h3 class="font-serif text-3xl text-white mb-6">Our Strategic Network Model</h3>
+                            <p class="text-teal-100 mb-6 leading-relaxed">
+                                "Are you just a solo consultant?" <br><br>
+                                <strong>No. We operate through a strategic network model.</strong><br>
+                                CoCrea8 maintains a curated group of specialized contractors who collaborate on projects—think of it as having a bench of top-tier talent strategically deployed for your specific needs, without the fixed overhead costs of maintaining full-time staff.
+                            </p>
+                            <p class="text-gray-300 text-sm mb-6 leading-relaxed">
+                                Our core network members have collaborated across 15+ major projects over 5+ years, so we know each other's work intimately. When you need animation, technical illustration, audio production, or specialized development, we bring in the exact expertise required—not generalists trying to do everything.
+                            </p>
+                            <div class="flex flex-col gap-3">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="check-circle" class="text-teal w-5 h-5"></i>
+                                    <span class="text-sm">Specialized expertise per project</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="check-circle" class="text-teal w-5 h-5"></i>
+                                    <span class="text-sm">Flexibility and scalability</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 p-8 rounded-xl backdrop-blur-sm">
+                            <h4 class="font-bold text-rose mb-4 uppercase tracking-widest text-xs">Typical Team Structure</h4>
+                            <ul class="space-y-4 text-sm text-gray-300">
+                                <li class="flex justify-between border-b border-white/10 pb-2">
+                                    <span>Principal Consultant</span>
+                                    <span class="text-white">Leila Harriss</span>
+                                </li>
+                                <li class="flex justify-between border-b border-white/10 pb-2">
+                                    <span>Visual Design</span>
+                                    <span class="text-white">Senior Graphic Designer</span>
+                                </li>
+                                <li class="flex justify-between border-b border-white/10 pb-2">
+                                    <span>Motion Graphics</span>
+                                    <span class="text-white">Animation Specialist</span>
+                                </li>
+                                <li class="flex justify-between border-b border-white/10 pb-2">
+                                    <span>Dev & Implementation</span>
+                                    <span class="text-white">E-Learning Developer</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span>Compliance & QA</span>
+                                    <span class="text-white">508 Specialist</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How We Work (Full Service) -->
+                <div class="mb-24">
+                    <div class="max-w-3xl mb-12">
+                        <h3 class="font-serif text-4xl text-navy mb-4">How We Work</h3>
+                        <p class="text-gray-600 text-lg">We are a <strong>full-service partner guiding you from initial conversations through design, development, final implementation, and evaluation</strong>. We handle the complete lifecycle, giving you one point of contact and one consistent quality standard.</p>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 border border-stone rounded-lg hover:border-teal transition-colors group">
+                            <span class="text-4xl font-serif text-rose/40 group-hover:text-teal/40 mb-4 block">01</span>
+                            <h4 class="font-bold text-navy mb-3">Front-End Analysis</h4>
+                            <ul class="text-sm text-gray-500 space-y-2">
+                                <li>• Comprehensive Needs Assessment</li>
+                                <li>• Learner Profiling</li>
+                                <li>• Performance Gap ID</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 border border-stone rounded-lg hover:border-teal transition-colors group">
+                            <span class="text-4xl font-serif text-rose/40 group-hover:text-teal/40 mb-4 block">02</span>
+                            <h4 class="font-bold text-navy mb-3">Design & Dev</h4>
+                            <ul class="text-sm text-gray-500 space-y-2">
+                                <li>• Curriculum Architecture</li>
+                                <li>• SCORM/xAPI/508 Dev</li>
+                                <li>• Scenario Design</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 border border-stone rounded-lg hover:border-teal transition-colors group">
+                            <span class="text-4xl font-serif text-rose/40 group-hover:text-teal/40 mb-4 block">03</span>
+                            <h4 class="font-bold text-navy mb-3">Delivery Support</h4>
+                            <ul class="text-sm text-gray-500 space-y-2">
+                                <li>• Train-the-Trainer</li>
+                                <li>• LMS Integration</li>
+                                <li>• Quality Assurance</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 border border-stone rounded-lg hover:border-teal transition-colors group">
+                            <span class="text-4xl font-serif text-rose/40 group-hover:text-teal/40 mb-4 block">04</span>
+                            <h4 class="font-bold text-navy mb-3">Evaluation</h4>
+                            <ul class="text-sm text-gray-500 space-y-2">
+                                <li>• Performance Measurement</li>
+                                <li>• Learning Analytics</li>
+                                <li>• Sustainability Planning</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Our Commitment to You -->
+                <div class="border-t border-stone pt-20 mb-20">
+                    <h3 class="font-serif text-3xl text-navy mb-8 text-center">Our Commitment to You</h3>
+                    <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+                        <div class="flex items-start gap-4">
+                            <i data-lucide="shield-check" class="text-teal w-6 h-6 flex-shrink-0 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-navy text-lg">Personal Leadership</h4>
+                                <p class="text-gray-600 text-sm">Our founder personally leads all instructional design and QA. You're not handed off to junior staff.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <i data-lucide="refresh-cw" class="text-teal w-6 h-6 flex-shrink-0 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-navy text-lg">Agile & Adaptable</h4>
+                                <p class="text-gray-600 text-sm">We use agile project management to navigate changing requirements and compressed timelines, ensuring deliverables evolve with your mission needs.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <i data-lucide="award" class="text-teal w-6 h-6 flex-shrink-0 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-navy text-lg">Government-Grade Rigor</h4>
+                                <p class="text-gray-600 text-sm">Every deliverable meets the standards we've maintained across DoD, USAID, and State Dept contracts.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <i data-lucide="briefcase" class="text-teal w-6 h-6 flex-shrink-0 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-navy text-lg">Small Business Advantages</h4>
+                                <p class="text-gray-600 text-sm">Woman-owned, diverse supplier certifications with responsiveness large firms can't match.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Philosophy -->
+                <div class="border-t border-stone pt-20 pb-10">
+                    <div class="max-w-6xl mx-auto">
+                        <h3 class="font-serif text-4xl text-navy mb-16 text-center">The CoCrea8 Philosophy</h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-12 items-center">
+                            <!-- Left: The Core Belief -->
+                            <div class="text-center md:text-right md:border-r border-stone md:pr-12 pb-8 md:pb-0 border-b md:border-b-0">
+                                <p class="font-serif text-2xl text-navy italic leading-relaxed">
+                                    "We believe training is only as good as what people can do afterward. Not what they remember on a test. Not what looks impressive in a demo. What they can actually execute under pressure."
+                                </p>
+                            </div>
+
+                            <!-- Right: Community & CTA -->
+                            <div class="text-center md:text-left md:pl-4">
+                                <h4 class="text-xs font-bold text-teal uppercase tracking-widest mb-4">Community Impact</h4>
+                                <p class="text-gray-600 leading-relaxed mb-8 max-w-md mx-auto md:mx-0">
+                                    Beyond our contracts, we are committed to a community-driven approach. We believe a rising tide raises all ships, and we actively contribute insights to strengthen the broader defense and development ecosystem.
+                                </p>
+                                <a href="#contact" onclick="showPage('contact')" class="inline-flex items-center gap-2 px-8 py-3 bg-teal text-white font-bold rounded-full hover:bg-navy transition-colors shadow-lg">
+                                    Start the Conversation 
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- PAGE: CAPABILITIES -->
+        <section id="capabilities" class="page-section hidden fade-in">
+            <div class="max-w-screen-xl mx-auto px-6 py-20">
+                
+                <!-- New Split Intro with Image -->
+                <div class="grid md:grid-cols-2 gap-16 items-center mb-12">
+                    <div>
+                        <h2 class="font-serif text-5xl md:text-6xl text-navy mb-4">Capabilities</h2>
+                        <p class="text-gray-500 text-lg leading-relaxed mb-8">
+                            Specialized tools for cognitive resilience in high-stakes environments. We don't just deliver content; we build the architecture for decision-making under pressure.
+                        </p>
+                        <!-- Moved Button Inside Here for Better Alignment -->
+                        <a href="files/CoCrea8_Capabilities_Statement.pdf" download class="inline-flex items-center gap-2 px-8 py-3 bg-navy text-white font-bold rounded-full hover:bg-teal transition-colors shadow-lg transform hover:-translate-y-1">
+                            <i data-lucide="download" class="w-5 h-5"></i>
+                            Download Capabilities Statement
+                        </a>
+                    </div>
+                    
+                    <!-- CAPABILITIES INTRO IMAGE -->
+                    <div class="relative h-[300px] w-full rounded-lg overflow-hidden border-2 border-red-500 border-dashed bg-red-50 flex items-center justify-center">
+                        <img src="images/capabilities-intro.jpg" alt="Capabilities in Action" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.opacity='0'">
+                    </div>
+                </div>
+
+                <!-- Grid Layout (Barbosa style: clean lines) -->
+                <div class="grid md:grid-cols-2 border-t border-stone mb-20">
+                    
+                    <!-- Item 1 -->
+                    <div class="border-b border-stone md:border-r p-12 hover:bg-white transition-colors group cursor-default">
+                        <span class="text-xs font-bold text-rose tracking-widest uppercase mb-4 block">01</span>
+                        <h3 class="font-serif text-3xl text-navy mb-4 group-hover:text-teal transition-colors">Crisis Simulation & Scenario-Based Learning</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            Virtual and hybrid crisis training that builds adaptive decision-making under pressure. We've trained 100+ participants across 30+ countries in real-time humanitarian emergency scenarios. We understand how to create cognitive load that matches operational conditions.
+                        </p>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="border-b border-stone p-12 hover:bg-white transition-colors group cursor-default">
+                        <span class="text-xs font-bold text-rose tracking-widest uppercase mb-4 block">02</span>
+                        <h3 class="font-serif text-3xl text-navy mb-4 group-hover:text-teal transition-colors">Cultural Intelligence & Cross-Cultural Competence</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            Led CultureReady Basics curriculum within DoD's Culture Program (300,000+ total program users), deployed publicly and via Joint Knowledge Online for DoD service members, Foreign Area Officers, and university students across 7 strategic languages. CQ Certified Facilitator with DoD Cultural Intelligence Trainer certification.
+                        </p>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="border-b md:border-b-0 border-stone md:border-r p-12 hover:bg-white transition-colors group cursor-default">
+                        <span class="text-xs font-bold text-rose tracking-widest uppercase mb-4 block">03</span>
+                        <h3 class="font-serif text-3xl text-navy mb-4 group-hover:text-teal transition-colors">Technical Training Translation</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            Complex technical content transformed into operational learning that transfers to workplace performance. We've taken climate science, infrastructure engineering, and policy frameworks and made them accessible without sacrificing depth—achieving 90% increase in knowledge retention at 30 days and a 50% reduction in time-to-competency.
+                        </p>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="border-b md:border-b-0 border-stone p-12 hover:bg-white transition-colors group cursor-default">
+                        <span class="text-xs font-bold text-rose tracking-widest uppercase mb-4 block">04</span>
+                        <h3 class="font-serif text-3xl text-navy mb-4 group-hover:text-teal transition-colors">E-Learning & LMS Development</h3>
+                        <p class="text-gray-600 leading-relaxed">
+                            SCORM 1.2/2004 compliant, xAPI integration, Section 508 accessibility. Government-standard development with experience across commercial LMSs (Canvas, Blackboard, Desire2Learn) and proprietary DoD systems. We build learning that works in your technical environment.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- NEW SECTION: Service Matrix / Competencies -->
+                <div class="border-t border-stone pt-20">
+                    <div class="grid md:grid-cols-4 gap-12">
+                        <!-- Header -->
+                        <div class="md:col-span-1">
+                            <h3 class="font-serif text-2xl text-navy mb-4">Core Competencies</h3>
+                            <p class="text-gray-500 text-sm leading-relaxed">
+                                Our multidisciplinary approach ensures holistic support from organizational strategy to individual learning outcomes.
+                            </p>
+                        </div>
+
+                        <!-- Column 1: Strategic -->
+                        <div class="md:col-span-1">
+                            <h4 class="text-xs font-bold text-teal tracking-widest uppercase mb-6 border-b border-stone pb-2">Organizational Strategy</h4>
+                            <ul class="space-y-3">
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Organizational Development
+                                </li>
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Change Management
+                                </li>
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Strategic Planning
+                                </li>
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Capacity-Building
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Column 2: Design -->
+                        <div class="md:col-span-1">
+                            <h4 class="text-xs font-bold text-teal tracking-widest uppercase mb-6 border-b border-stone pb-2">Design & Development</h4>
+                            <ul class="space-y-3">
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Instructional Design
+                                </li>
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Curriculum Development
+                                </li>
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Adult Learning Strategy
+                                </li>
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Learning Strategy
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Column 3: Delivery -->
+                        <div class="md:col-span-1">
+                            <h4 class="text-xs font-bold text-teal tracking-widest uppercase mb-6 border-b border-stone pb-2">Delivery & Implementation</h4>
+                            <ul class="space-y-3">
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Training Delivery
+                                </li>
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Facilitation
+                                </li>
+                                <li class="text-gray-600 flex items-center group">
+                                    <span class="w-1.5 h-1.5 bg-rose rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                                    Performance Support
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- PAGE: WORK (Case Studies) -->
+        <section id="work" class="page-section hidden fade-in">
+            <div class="max-w-screen-xl mx-auto px-6 py-20">
+                <div class="mb-16">
+                    <h2 class="font-serif text-5xl md:text-6xl text-navy mb-6">Case Studies</h2>
+                    <p class="text-gray-500 max-w-2xl text-lg">
+                        Proven performance on complex government contracts delivering measurable operational outcomes.
+                    </p>
+                </div>
+
+                <!-- Case Study List -->
+                <div class="space-y-16">
+                    
+                    <!-- CASE STUDY 1: DoD Cultural Intelligence -->
+                    <article class="border-b border-stone pb-12 group">
+                        <!-- Header / Executive Summary -->
+                        <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 bg-navy text-white text-xs font-bold tracking-widest uppercase rounded-sm">DoD / DLNSEO</span>
+                                <span class="text-teal font-medium text-sm">CultureReady Basics</span>
+                            </div>
+                            <span class="text-gray-400 text-sm mt-2 md:mt-0">2016 - 2021 (5+ Years Sustained)</span>
+                        </div>
+
+                        <h3 class="font-serif text-3xl md:text-4xl text-navy mb-8">Transforming Military Cultural Competence at Scale</h3>
+
+                        <!-- Quick Stats Grid -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Scale</p>
+                                <p class="text-2xl font-serif text-teal">300k+</p>
+                                <p class="text-xs text-gray-400">Total Users</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Performance</p>
+                                <p class="text-2xl font-serif text-teal">30%</p>
+                                <p class="text-xs text-gray-400">Competency Increase</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Reach</p>
+                                <p class="text-2xl font-serif text-teal">7</p>
+                                <p class="text-xs text-gray-400">Strategic Languages</p>
+                            </div>
+                             <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Status</p>
+                                <p class="text-xl font-serif text-teal">Required</p>
+                                <p class="text-xs text-gray-400">Institutional Training</p>
+                            </div>
+                        </div>
+
+                        <!-- Expandable Details -->
+                        <details class="group/details">
+                            <summary class="cursor-pointer inline-flex items-center text-rose font-bold uppercase tracking-widest text-sm hover:text-teal transition-colors select-none">
+                                <span class="group-open/details:hidden">Read Full Case Study</span>
+                                <span class="hidden group-open/details:block">Close Case Study</span>
+                                <i data-lucide="chevron-down" class="ml-2 w-4 h-4 group-open/details:rotate-180 transition-transform"></i>
+                            </summary>
+                            
+                            <div class="mt-8 grid md:grid-cols-3 gap-12 pt-8 border-t border-stone/50 animate-in fade-in slide-in-from-top-4 duration-300">
+                                <div class="md:col-span-2 space-y-8">
+                                    <div>
+                                        <h4 class="font-serif text-xl text-navy mb-3">The Strategic Challenge</h4>
+                                        <p class="text-gray-600 leading-relaxed">
+                                            DoD faced a critical inefficiency: teaching cross-cultural competence to personnel operating across 7 strategic language regions. Traditional approaches relied on 7 separate, static programs that focused on memorization rather than competency, failing to prepare personnel for high-stakes, unpredictable environments.
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-serif text-xl text-navy mb-3">The Solution: Three-Domain Integration</h4>
+                                        <p class="text-gray-600 leading-relaxed mb-4">
+                                            CoCrea8 led the development of a content-agnostic methodology integrating three distinct domains: Culture-General Knowledge, Culture-Specific Information, and Target Language Proficiency.
+                                        </p>
+                                        <ul class="space-y-2 text-gray-600 text-sm">
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Exploratory Phase:</strong> Authentic scenarios activate metacognitive reflection.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Language Assist:</strong> Pop-up context providing "native speaker" cultural intuition.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Dual Deployment:</strong> SCORM 1.2 compliant for JKO (Classified) and Public web.</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- IMAGE PLACEHOLDER FOR INFOGRAPHIC -->
+                                    <div class="mt-6">
+                                        <img src="images/cs1-infographic.jpg" alt="Three-Domain Integration Model" class="w-full rounded-lg border border-stone" onerror="this.style.opacity='0'">
+                                    </div>
+                                </div>
+                                <div class="bg-offwhite p-6 rounded-lg border border-stone h-fit">
+                                    <i data-lucide="quote" class="w-8 h-8 text-rose/30 mb-4"></i>
+                                    <p class="italic text-navy mb-4 text-sm leading-relaxed">
+                                        "The CultureReady Basics program revolutionized how we approach cultural competence... the sustained adoption across the department validates the program's exceptional design."
+                                    </p>
+                                    <p class="text-xs font-bold text-teal uppercase tracking-wide">— DoD DLNSEO Program Director</p>
+                                </div>
+                            </div>
+                        </details>
+                    </article>
+
+
+                    <!-- CASE STUDY 2: USAID Virtual Crisis Simulation -->
+                    <article class="border-b border-stone pb-12 group">
+                        <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 bg-teal text-white text-xs font-bold tracking-widest uppercase rounded-sm">USAID / WSSH</span>
+                                <span class="text-teal font-medium text-sm">Virtual Crisis Simulation</span>
+                            </div>
+                            <span class="text-gray-400 text-sm mt-2 md:mt-0">2021 (Innovation Pilot)</span>
+                        </div>
+
+                        <h3 class="font-serif text-3xl md:text-4xl text-navy mb-8">"Perfect Storm": First-of-Kind Virtual Emergency Response</h3>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                             <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Scale</p>
+                                <p class="text-2xl font-serif text-teal">100+</p>
+                                <p class="text-xs text-gray-400">Simultaneous Participants</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Global Reach</p>
+                                <p class="text-2xl font-serif text-teal">30+</p>
+                                <p class="text-xs text-gray-400">Countries Represented</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Rating</p>
+                                <p class="text-2xl font-serif text-teal">#1</p>
+                                <p class="text-xs text-gray-400">Highest Rated Session</p>
+                            </div>
+                             <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Outcome</p>
+                                <p class="text-xl font-serif text-teal">Evergreen</p>
+                                <p class="text-xs text-gray-400">Framework Adopted</p>
+                            </div>
+                        </div>
+
+                        <details class="group/details">
+                            <summary class="cursor-pointer inline-flex items-center text-rose font-bold uppercase tracking-widest text-sm hover:text-teal transition-colors select-none">
+                                <span class="group-open/details:hidden">Read Full Case Study</span>
+                                <span class="hidden group-open/details:block">Close Case Study</span>
+                                <i data-lucide="chevron-down" class="ml-2 w-4 h-4 group-open/details:rotate-180 transition-transform"></i>
+                            </summary>
+                            
+                            <div class="mt-8 grid md:grid-cols-3 gap-12 pt-8 border-t border-stone/50 animate-in fade-in slide-in-from-top-4 duration-300">
+                                <div class="md:col-span-2 space-y-8">
+                                    <div>
+                                        <h4 class="font-serif text-xl text-navy mb-3">The Innovation: Semi-Immersive Simulation</h4>
+                                        <p class="text-gray-600 leading-relaxed mb-4">
+                                            CoCrea8 designed "Perfect Storm," eliminating all "training" cues. Participants entered a live, unfolding scenario with incomplete information, cascading consequences, and real-time facilitation acting as a command center.
+                                        </p>
+                                        <ul class="space-y-2 text-gray-600 text-sm">
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Real-Time Adaptation:</strong> Facilitators adjusted the scenario live based on participant choices.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Cognitive Load Matching:</strong> Information overload mimicked actual field conditions.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Cost Savings:</strong> Eliminated costly logistics of in-person exercises while increasing reach.</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- IMAGE PLACEHOLDER FOR SIMULATION -->
+                                    <div class="mt-6">
+                                        <img src="images/cs2-simulation.jpg" alt="Virtual Ops Center" class="w-full rounded-lg border border-stone" onerror="this.style.opacity='0'">
+                                    </div>
+                                </div>
+                                <div class="bg-offwhite p-6 rounded-lg border border-stone h-fit space-y-6">
+                                    <div>
+                                        <i data-lucide="quote" class="w-8 h-8 text-rose/30 mb-4"></i>
+                                        <p class="italic text-navy mb-4 text-sm leading-relaxed">
+                                            "I was so engaged in navigating the virtual emergency, I forgot I was in training. It felt real."
+                                        </p>
+                                        <p class="text-xs font-bold text-teal uppercase tracking-wide">— Humanitarian Affairs Field Specialist</p>
+                                    </div>
+                                    <div class="border-t border-stone pt-6">
+                                        <i data-lucide="quote" class="w-8 h-8 text-rose/30 mb-4"></i>
+                                        <p class="italic text-navy mb-4 text-sm leading-relaxed">
+                                            "Leila and her team worked with USAID and TRG's LTS team to design an elaborate interactive, immersive tabletop exercise, that was expertly executed... Both of these sessions were the highest rated sessions for the entire workshop."
+                                        </p>
+                                        <p class="text-xs font-bold text-teal uppercase tracking-wide">— Facilitation & Training Lead, TRG</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+                    </article>
+
+
+                    <!-- CASE STUDY 3: USAID Climate Education Portfolio -->
+                    <article class="border-b border-stone pb-12 group">
+                        <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 bg-teal text-white text-xs font-bold tracking-widest uppercase rounded-sm">USAID / SEEK & ACE</span>
+                                <span class="text-teal font-medium text-sm">Global Technical Capacity</span>
+                            </div>
+                            <span class="text-gray-400 text-sm mt-2 md:mt-0">2021 - 2025 (Multi-Contract)</span>
+                        </div>
+
+                        <h3 class="font-serif text-3xl md:text-4xl text-navy mb-8">Building Climate Technical Capacity at Global Scale</h3>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                             <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Learners</p>
+                                <p class="text-2xl font-serif text-teal">12,000+</p>
+                                <p class="text-xs text-gray-400">Across 6 Continents</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Retention</p>
+                                <p class="text-2xl font-serif text-teal">+90%</p>
+                                <p class="text-xs text-gray-400">Increase at 30 Days</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Speed</p>
+                                <p class="text-2xl font-serif text-teal">50%</p>
+                                <p class="text-xs text-gray-400">Faster Time-to-Competency</p>
+                            </div>
+                             <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Budget</p>
+                                <p class="text-xl font-serif text-teal">Zero</p>
+                                <p class="text-xs text-gray-400">Overruns ($MM Portfolio)</p>
+                            </div>
+                        </div>
+
+                        <details class="group/details">
+                            <summary class="cursor-pointer inline-flex items-center text-rose font-bold uppercase tracking-widest text-sm hover:text-teal transition-colors select-none">
+                                <span class="group-open/details:hidden">Read Full Case Study</span>
+                                <span class="hidden group-open/details:block">Close Case Study</span>
+                                <i data-lucide="chevron-down" class="ml-2 w-4 h-4 group-open/details:rotate-180 transition-transform"></i>
+                            </summary>
+                            
+                            <div class="mt-8 grid md:grid-cols-3 gap-12 pt-8 border-t border-stone/50 animate-in fade-in slide-in-from-top-4 duration-300">
+                                <div class="md:col-span-2 space-y-8">
+                                    <div>
+                                        <h4 class="font-serif text-xl text-navy mb-3">The Challenge</h4>
+                                        <p class="text-gray-600 leading-relaxed">
+                                            USAID needed to translate complex climate science (Finance, Natural Solutions, Adaptation) for diverse global audiences ranging from novices to experts. Traditional lecture-based training yielded poor retention and minimal field application.
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-serif text-xl text-navy mb-3">The Solution: Multi-Modal Ecosystem</h4>
+                                        <p class="text-gray-600 leading-relaxed mb-4">
+                                            We designed a comprehensive ecosystem combining self-paced e-learning (Climate Basics), interactive virtual workshops (Deep Dives), and job aids.
+                                        </p>
+                                        <ul class="space-y-2 text-gray-600 text-sm">
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Evidence-Based Design:</strong> 90% increase in knowledge retention at 30 days (35% increase after 90 days).</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Operational Efficiency:</strong> 50% reduction in time-to-competency of new skills.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Portfolio Management:</strong> Managed 15+ concurrent projects with zero budget overruns.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Scalability:</strong> Saved $2M+ in travel costs via virtual delivery.</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- IMAGE PLACEHOLDER FOR CLIMATE -->
+                                    <div class="mt-6">
+                                        <img src="images/cs3-climate.jpg" alt="Climate Training Materials" class="w-full rounded-lg border border-stone" onerror="this.style.opacity='0'">
+                                    </div>
+                                </div>
+                                <div class="bg-offwhite p-6 rounded-lg border border-stone h-fit">
+                                    <i data-lucide="quote" class="w-8 h-8 text-rose/30 mb-4"></i>
+                                    <p class="italic text-navy mb-4 text-sm leading-relaxed">
+                                        "Leila has grown to take on the entire training portfolio... She did it with grace and professionalism that should be held up as an example."
+                                    </p>
+                                    <p class="text-xs font-bold text-teal uppercase tracking-wide">— Project Director</p>
+                                </div>
+                            </div>
+                        </details>
+                    </article>
+
+
+                     <!-- CASE STUDY 4: Department of State FSI -->
+                     <article class="border-b border-stone pb-12 group">
+                        <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 bg-navy text-white text-xs font-bold tracking-widest uppercase rounded-sm">State Dept / FSI</span>
+                                <span class="text-teal font-medium text-sm">Diplomatic Language Services</span>
+                            </div>
+                            <span class="text-gray-400 text-sm mt-2 md:mt-0">2017 - 2020</span>
+                        </div>
+
+                        <h3 class="font-serif text-3xl md:text-4xl text-navy mb-8">Diplomatic Language & Culture Training Excellence</h3>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                             <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Scale</p>
+                                <p class="text-2xl font-serif text-teal">70+</p>
+                                <p class="text-xs text-gray-400">Languages</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Proficiency</p>
+                                <p class="text-2xl font-serif text-teal">ILR 3+</p>
+                                <p class="text-xs text-gray-400">Target Level</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Compliance</p>
+                                <p class="text-2xl font-serif text-teal">100%</p>
+                                <p class="text-xs text-gray-400">Zero Violations</p>
+                            </div>
+                             <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Impact</p>
+                                <p class="text-xl font-serif text-teal">Sustained</p>
+                                <p class="text-xs text-gray-400">Institutional Use</p>
+                            </div>
+                        </div>
+
+                        <details class="group/details">
+                            <summary class="cursor-pointer inline-flex items-center text-rose font-bold uppercase tracking-widest text-sm hover:text-teal transition-colors select-none">
+                                <span class="group-open/details:hidden">Read Full Case Study</span>
+                                <span class="hidden group-open/details:block">Close Case Study</span>
+                                <i data-lucide="chevron-down" class="ml-2 w-4 h-4 group-open/details:rotate-180 transition-transform"></i>
+                            </summary>
+                            
+                            <div class="mt-8 grid md:grid-cols-3 gap-12 pt-8 border-t border-stone/50 animate-in fade-in slide-in-from-top-4 duration-300">
+                                <div class="md:col-span-2 space-y-8">
+                                    <div>
+                                        <h4 class="font-serif text-xl text-navy mb-3">The Challenge: Diplomatic Readiness</h4>
+                                        <p class="text-gray-600 leading-relaxed">
+                                            The Foreign Service Institute needed to prepare diplomats for posts in 70+ languages, requiring advanced proficiency (ILR 3+) and deep integration of diplomatic protocol. The challenge was scaling quality instruction across dozens of languages while maintaining strict security and cultural accuracy.
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-serif text-xl text-navy mb-3">The Solution: Integrated Framework</h4>
+                                        <p class="text-gray-600 leading-relaxed mb-4">
+                                            CoCrea8 developed a comprehensive curriculum architecture integrating language, culture, and protocol.
+                                        </p>
+                                        <ul class="space-y-2 text-gray-600 text-sm">
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Protocol Guides:</strong> Scenarios requiring language-culture integration for negotiations.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Scalability:</strong> Modular templates allowed rapid customization for 70+ languages.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Instructor Development:</strong> Trained hundreds of instructors on implementation and assessment.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="bg-offwhite p-6 rounded-lg border border-stone h-fit">
+                                    <i data-lucide="quote" class="w-8 h-8 text-rose/30 mb-4"></i>
+                                    <p class="italic text-navy mb-4 text-sm leading-relaxed">
+                                        "[CoCrea8's] ability to scale sophisticated instructional design across 70+ languages while maintaining diplomatic context relevance exceeded our expectations."
+                                    </p>
+                                    <p class="text-xs font-bold text-teal uppercase tracking-wide">— FSI School of Language Studies Leadership</p>
+                                </div>
+                            </div>
+                        </details>
+                    </article>
+
+                    <!-- CASE STUDY 5: USAID Climate Deep Dives -->
+                    <article class="border-b border-stone pb-12 group">
+                        <div class="flex flex-col md:flex-row md:items-baseline justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 bg-teal text-white text-xs font-bold tracking-widest uppercase rounded-sm">USAID / Climate</span>
+                                <span class="text-teal font-medium text-sm">Deep Dives Conference Series</span>
+                            </div>
+                            <span class="text-gray-400 text-sm mt-2 md:mt-0">2024</span>
+                        </div>
+
+                        <h3 class="font-serif text-3xl md:text-4xl text-navy mb-8">Multi-Track Technical Conference Series</h3>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                             <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Participants</p>
+                                <p class="text-2xl font-serif text-teal">108+</p>
+                                <p class="text-xs text-gray-400">From 4 Continents</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Satisfaction</p>
+                                <p class="text-2xl font-serif text-teal">100%</p>
+                                <p class="text-xs text-gray-400">Client Rating</p>
+                            </div>
+                            <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Format</p>
+                                <p class="text-2xl font-serif text-teal">5-Day</p>
+                                <p class="text-xs text-gray-400">Multi-Track Virtual</p>
+                            </div>
+                             <div class="p-4 bg-white border border-stone rounded-lg">
+                                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Legacy</p>
+                                <p class="text-xl font-serif text-teal">Model</p>
+                                <p class="text-xs text-gray-400">Adopted for Future</p>
+                            </div>
+                        </div>
+
+                        <details class="group/details">
+                            <summary class="cursor-pointer inline-flex items-center text-rose font-bold uppercase tracking-widest text-sm hover:text-teal transition-colors select-none">
+                                <span class="group-open/details:hidden">Read Full Case Study</span>
+                                <span class="hidden group-open/details:block">Close Case Study</span>
+                                <i data-lucide="chevron-down" class="ml-2 w-4 h-4 group-open/details:rotate-180 transition-transform"></i>
+                            </summary>
+                            
+                            <div class="mt-8 grid md:grid-cols-3 gap-12 pt-8 border-t border-stone/50 animate-in fade-in slide-in-from-top-4 duration-300">
+                                <div class="md:col-span-2 space-y-8">
+                                    <div>
+                                        <h4 class="font-serif text-xl text-navy mb-3">The Challenge: Depth vs. Breadth</h4>
+                                        <p class="text-gray-600 leading-relaxed">
+                                            USAID needed to deliver sophisticated technical training to a global audience with varying expertise levels. The challenge was managing a multi-day virtual conference that balanced deep technical specializations (Finance, Adaptation, etc.) with necessary cross-pollination.
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-serif text-xl text-navy mb-3">The Solution: Integrated Tracks</h4>
+                                        <p class="text-gray-600 leading-relaxed mb-4">
+                                            CoCrea8 designed an immersive 5-day architecture with parallel specialized tracks that converged for cross-sectoral problem solving.
+                                        </p>
+                                        <ul class="space-y-2 text-gray-600 text-sm">
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Practitioner-Led:</strong> USAID technical experts led content, ensuring workplace relevance.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Virtual Engagement:</strong> Used collaborative workspaces (Miro) and breakout protocols to maintain high engagement across time zones.</li>
+                                            <li class="flex gap-3"><i data-lucide="check" class="w-5 h-5 text-teal shrink-0"></i> <strong>Outcome:</strong> 100% satisfaction and immediate application of tools.</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- IMAGE PLACEHOLDER FOR CONFERENCE -->
+                                    <div class="mt-6">
+                                        <img src="images/cs5-conference.jpg" alt="Conference Interface or Miro Board" class="w-full rounded-lg border border-stone" onerror="this.style.opacity='0'">
+                                    </div>
+
+                                    <div class="mt-8 pt-8 border-t border-stone">
+                                        <h4 class="font-serif text-lg text-navy mb-4">Participant Feedback Highlights</h4>
+                                        <ul class="space-y-3 text-sm text-gray-600">
+                                            <li class="flex gap-3"><i data-lucide="quote" class="w-4 h-4 text-teal shrink-0 mt-1"></i> "This was so well-organized, lovely space, natural light, great facilitators and planning team."</li>
+                                            <li class="flex gap-3"><i data-lucide="quote" class="w-4 h-4 text-teal shrink-0 mt-1"></i> "Learned a lot about new tools, approaches and examples from presentations and participant discussions."</li>
+                                            <li class="flex gap-3"><i data-lucide="quote" class="w-4 h-4 text-teal shrink-0 mt-1"></i> "Appreciate going from high-level objectives to a deeper level of detail... helps clarify the big picture."</li>
+                                            <li class="flex gap-3"><i data-lucide="quote" class="w-4 h-4 text-teal shrink-0 mt-1"></i> "Excellent real life examples."</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="bg-offwhite p-6 rounded-lg border border-stone h-fit">
+                                    <i data-lucide="quote" class="w-8 h-8 text-rose/30 mb-4"></i>
+                                    <p class="italic text-navy mb-4 text-sm leading-relaxed">
+                                        "The cross-track sessions were brilliant—I learned as much from other specializations as my own."
+                                    </p>
+                                    <p class="text-xs font-bold text-teal uppercase tracking-wide">— Implementing Partner</p>
+                                </div>
+                            </div>
+                        </details>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- PAGE: TESTIMONIALS (Dedicated Page) -->
+        <section id="testimonials" class="page-section hidden fade-in">
+            <div class="max-w-screen-xl mx-auto px-6 py-20">
+                
+                <div class="mb-16 border-b border-stone pb-12">
+                    <div class="grid md:grid-cols-2 gap-12 items-end">
+                        <div>
+                            <h2 class="font-serif text-5xl md:text-6xl text-navy mb-6">What Clients Say</h2>
+                            <p class="text-gray-500 max-w-lg text-lg">
+                                Trusted by government agencies, prime contractors, and international organizations to deliver under pressure.
+                            </p>
+                        </div>
+                        
+                        <!-- TESTIMONIALS ATMOSPHERE IMAGE -->
+                        <div class="relative h-[250px] w-full rounded-lg overflow-hidden border-2 border-red-500 border-dashed bg-red-50 flex items-center justify-center">
+                            <img src="images/testimonials-hero.jpg" alt="Collaboration" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.opacity='0'">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 masonry-grid">
+                    
+                    <!-- Director of Training & Facilitation -->
+                    <div class="bg-white p-8 rounded-xl border border-stone shadow-sm hover:shadow-md transition-shadow relative">
+                        <i data-lucide="quote" class="absolute top-6 right-6 w-8 h-8 text-teal/10"></i>
+                        <p class="text-gray-600 italic mb-6 leading-relaxed text-sm">
+                            "Leila brings an infectious enthusiasm to every project she tackles. As a trusted partner in brainstorming sessions, she offers valuable insights drawn from her unique blend of experience in both development and defense sectors... Leila’s passion for these topics is evident, and she effortlessly channels that energy into helping others."
+                        </p>
+                        <div>
+                            <p class="font-bold text-navy text-sm">Director of Training & Facilitation</p>
+                            <p class="text-xs text-teal uppercase tracking-wide">Training Resources Group (USAID contract)</p>
+                        </div>
+                    </div>
+
+                    <!-- Organizational Development Lead -->
+                    <div class="bg-white p-8 rounded-xl border border-stone shadow-sm hover:shadow-md transition-shadow relative">
+                        <i data-lucide="quote" class="absolute top-6 right-6 w-8 h-8 text-teal/10"></i>
+                        <p class="text-gray-600 italic mb-6 leading-relaxed text-sm">
+                            "Leila is a joy to work with and has played a critical role in SEEK’s accomplishments... Leila’s confidence in her abilities and strategic acumen has enabled her to engrain herself in complex client systems. Her ability to manage SMEs and help them apply best practices in adult learning principles enabled CCS to deliver a product in a timely fashion."
+                        </p>
+                        <div>
+                            <p class="font-bold text-navy text-sm">Organizational Development & Training Lead</p>
+                            <p class="text-xs text-teal uppercase tracking-wide">Training Resources Group (USAID contract)</p>
+                        </div>
+                    </div>
+
+                    <!-- Training & Facilitation Lead -->
+                    <div class="bg-white p-8 rounded-xl border border-stone shadow-sm hover:shadow-md transition-shadow relative">
+                        <i data-lucide="quote" class="absolute top-6 right-6 w-8 h-8 text-teal/10"></i>
+                        <p class="text-gray-600 italic mb-6 leading-relaxed text-sm">
+                            "Leila has grown to take on the entire training portfolio for CCS. She is navigating several requests (and demands with changing deadlines)... She does it with grace and professionalism that should be held up as an example to anyone new to TRG."
+                        </p>
+                        <div>
+                            <p class="font-bold text-navy text-sm">Training and Facilitation Lead</p>
+                            <p class="text-xs text-teal uppercase tracking-wide">Training Resources Group (USAID contract)</p>
+                        </div>
+                    </div>
+
+                    <!-- DLS Project Manager -->
+                    <div class="bg-white p-8 rounded-xl border border-stone shadow-sm hover:shadow-md transition-shadow relative">
+                        <i data-lucide="quote" class="absolute top-6 right-6 w-8 h-8 text-teal/10"></i>
+                        <p class="text-gray-600 italic mb-6 leading-relaxed text-sm">
+                            "Leila is a great organizer, and is always thinking about how she can improve processes to make it easier not only for herself, but for her developers, and to create the best product possible for the client."
+                        </p>
+                        <div>
+                            <p class="font-bold text-navy text-sm">Project Manager</p>
+                            <p class="text-xs text-teal uppercase tracking-wide">Diplomatic Language Services</p>
+                        </div>
+                    </div>
+
+                    <!-- Innovate Globally -->
+                    <div class="bg-white p-8 rounded-xl border border-stone shadow-sm hover:shadow-md transition-shadow relative">
+                        <i data-lucide="quote" class="absolute top-6 right-6 w-8 h-8 text-teal/10"></i>
+                        <p class="text-gray-600 italic mb-6 leading-relaxed text-sm">
+                            "I'm so grateful for your creative ID skills, unwavering positivity, and true commitment to our projects. Looking forward to more ID work together in 2026!"
+                        </p>
+                        <div>
+                            <p class="font-bold text-navy text-sm">Founder</p>
+                            <p class="text-xs text-teal uppercase tracking-wide">Innovate Globally</p>
+                        </div>
+                    </div>
+
+                    <!-- Director of Training (Tabletop highlight) -->
+                    <div class="bg-white p-8 rounded-xl border border-stone shadow-sm hover:shadow-md transition-shadow relative lg:col-span-2">
+                        <i data-lucide="quote" class="absolute top-6 right-6 w-8 h-8 text-teal/10"></i>
+                        <p class="text-gray-600 italic mb-6 leading-relaxed text-sm">
+                            "Leila and her team worked with USAID and TRG's LTS team to design an elaborate interactive, immersive tabletop exercise, that was expertly executed...Both of these sessions were the highest rated sessions for the entire workshop."
+                        </p>
+                        <div>
+                            <p class="font-bold text-navy text-sm">Facilitation & Training Lead, TRG</p>
+                            <p class="text-xs text-teal uppercase tracking-wide">Training Resources Group (USAID contract)</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- PAGE: INSIGHTS -->
+        <section id="insights" class="page-section hidden fade-in">
+            <div class="max-w-screen-xl mx-auto px-6 py-20">
+                <div class="border-b border-stone pb-12 mb-12">
+                    <h2 class="font-serif text-5xl md:text-6xl text-navy mb-6">Insights</h2>
+                    <p class="text-xl text-gray-500 font-light">
+                        Thought leadership at the intersection of cognitive science and operational readiness.
+                    </p>
+                </div>
+
+                <div class="max-w-3xl">
+                    <article class="group cursor-pointer">
+                        <div class="flex justify-between items-baseline mb-4">
+                            <span class="text-rose text-sm font-bold uppercase tracking-widest">Featured Publication</span>
+                            <span class="text-gray-400 text-sm">Diplomatic Language Services</span>
+                        </div>
+                        <h3 class="font-serif text-3xl md:text-4xl text-navy mb-6 group-hover:text-teal transition-colors">
+                            CultureReady Basics: Absorbing Language and Culture
+                        </h3>
+                        <p class="text-gray-600 text-lg leading-relaxed mb-8">
+                            An exploration of the innovative "Three-Domain Integration" methodology behind DoD's culture and language training. How we combined culture-general, culture-specific, and language proficiency into one cohesive learning model.
+                        </p>
+                        <a href="https://dlsdc.com/blog/cultureready-basics-absorbing-language-and-culture/" target="_blank" class="inline-flex items-center text-teal hover:text-navy font-medium transition-colors">
+                            Read Full Article <i data-lucide="arrow-up-right" class="ml-2 w-4 h-4"></i>
+                        </a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- PAGE: CONTACT -->
+        <section id="contact" class="page-section hidden fade-in">
+            <div class="max-w-screen-xl mx-auto px-6 py-20 flex flex-col justify-between min-h-[60vh]">
+                <div>
+                    <h2 class="font-serif text-5xl md:text-7xl text-navy mb-8">Ready to Strengthen Your Next Proposal?</h2>
+                    <p class="text-2xl text-teal font-light max-w-2xl mb-12">
+                        Whether you need specialized instructional design expertise, full training program delivery, or a partner who understands operational realities, we're here to help.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-16 border-t border-stone pt-16">
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-xs text-teal font-bold uppercase tracking-widest mb-2">Founder & CEO</p>
+                            <h5 class="font-serif text-3xl text-navy">Leila M. Harriss</h5>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <a href="mailto:hello@cocrea8.com" class="block text-xl text-gray-600 hover:text-teal transition-colors font-medium">hello@cocrea8.com</a>
+                            <a href="tel:4074323217" class="block text-xl text-gray-600 hover:text-teal transition-colors font-medium">407.432.3217</a>
+                            <a href="https://www.cocrea8.com" target="_blank" class="block text-lg text-gray-400 hover:text-teal transition-colors">www.cocrea8.com</a>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-serif text-xl text-navy mb-6">Business Credentials & Locations</h4>
+                        <div class="grid grid-cols-2 gap-8 text-gray-600">
+                            <div class="col-span-2 space-y-2 mb-4">
+                                <p class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-rose"></i> Woman-Owned Small Business</p>
+                                <p class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-rose"></i> Diverse Supplier Gateway Certified</p>
+                                <p class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-rose"></i> Active Security Clearance Capability</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-navy mb-1">Florida</p>
+                                <p>Orlando (Primary)</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-navy mb-1">Washington, D.C.</p>
+                                <p>Metro Area</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Simple Footer -->
+    <footer class="py-8 px-6 text-center text-xs text-gray-400 border-t border-stone uppercase tracking-widest">
+        &copy; 2025 CoCrea8 Learning Design LLC
+    </footer>
+
+    <!-- Logic for SPA Navigation -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Page Switching Logic
+        function showPage(pageId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Show target section
+            const target = document.getElementById(pageId);
+            if (target) {
+                target.classList.remove('hidden');
+                window.scrollTo(0, 0); // Reset scroll to top
+            }
+
+            // Update Nav State
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.classList.remove('text-teal', 'font-medium');
+                link.classList.add('text-gray-600');
+            });
+            
+            // Highlight active link if exists (except logo)
+            const activeBtn = document.getElementById('nav-' + pageId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-600');
+                activeBtn.classList.add('text-teal', 'font-medium');
+            }
+        }
+
+        // Mobile Menu Logic
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        }
+
+        // Initialize Home
+        showPage('home');
+    </script>
+</body>
+</html>
