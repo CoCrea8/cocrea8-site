@@ -96,8 +96,9 @@
     <header class="fixed w-full top-0 z-50 bg-[#F9F9F7]/95 backdrop-blur-sm border-b border-stone">
         <div class="max-w-screen-2xl mx-auto px-6 h-24 flex justify-between items-center">
             <!-- Logo Area -->
-            <a href="#" onclick="showPage('home')" class="hover:opacity-80 transition-opacity flex items-center gap-3">
-                <img src="images/logo.jpg" alt="CoCrea8 Logo" class="h-12 w-auto"> 
+            <a href="#" onclick="showPage('home')" class="hover:opacity-80 transition-opacity flex items-center">
+                <!-- UPDATED: Logo resized to h-20 (bigger) -->
+                <img src="images/logo.jpg" alt="CoCrea8 Logo" class="h-20 w-auto"> 
             </a>
 
             <!-- Desktop Nav -->
@@ -201,6 +202,7 @@
                         <img src="images/about-hero.jpg" class="absolute inset-0 w-full h-full object-cover z-0" alt="Strategic Planning" onerror="this.style.opacity='0'">
                         <div class="absolute inset-0 bg-navy/60 z-10"></div> <!-- Dark overlay for text readability -->
                         <div class="relative z-10 text-center">
+                            <!-- Removed anchor icon, centered text -->
                             <p class="font-serif text-3xl text-white italic leading-snug">"Operational readiness isn't just a metric.<br>It's the mission."</p>
                         </div>
                     </div>
@@ -215,7 +217,8 @@
                     </div>
 
                     <!-- NEW: TRANSFORMATION VISUAL PLACEHOLDER -->
-                    <div class="mb-20 rounded-lg overflow-hidden border-2 border-dashed border-stone bg-offwhite flex items-center justify-center p-8 relative z-10">
+                    <!-- Removed border and background to make it a clean image container -->
+                    <div class="mb-20 rounded-lg overflow-hidden relative z-10">
                         <img src="images/methodology-transformation.jpg" alt="Transformation from Complexity to Capability" class="w-full max-w-4xl h-auto relative z-10" onerror="this.style.opacity='0'">
                     </div>
                     
@@ -625,6 +628,7 @@
                     </div>
                     
                     <!-- CAPABILITIES INTRO IMAGE -->
+                    <!-- Removed border-2 border-red-500 border-dashed bg-red-50 -->
                     <div class="relative h-[300px] w-full rounded-lg overflow-hidden flex items-center justify-center">
                         <img src="images/capabilities-intro.jpg" alt="Capabilities in Action" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.opacity='0'">
                     </div>
