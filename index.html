@@ -118,7 +118,8 @@
         </div>
 
         <!-- Mobile Menu Overlay -->
-        <div id="mobile-menu" class="fixed inset-0 bg-[#F9F9F7] z-50 hidden flex-col justify-center items-center space-y-8 text-xl font-serif">
+        <!-- UPDATED: Changed bg-[#F9F9F7] to bg-white to ensure it is opaque and blocks underlying content -->
+        <div id="mobile-menu" class="fixed inset-0 bg-white z-50 hidden flex-col justify-center items-center space-y-8 text-xl font-serif">
             <button class="absolute top-8 right-8" onclick="toggleMobileMenu()">
                 <i data-lucide="x" class="w-8 h-8"></i>
             </button>
